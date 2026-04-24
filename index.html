@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>코스트코 큐레이터 가이드</title>
+
+<style>
+body { margin:0; font-family:Arial, sans-serif; background:#f4f6f8; color:#222; }
+header { background:#1428a0; color:white; padding:22px 16px; text-align:center; font-size:22px; font-weight:bold; }
+.container { padding:16px; }
+.menu { display:grid; gap:12px; margin-bottom:22px; }
+.menu button { padding:17px; border:none; border-radius:14px; background:white; font-size:16px; font-weight:bold; box-shadow:0 3px 10px rgba(0,0,0,0.08); }
+.section { display:none; }
+.section.active { display:block; }
+h2 { margin:18px 0 14px; font-size:22px; }
+.card { background:white; padding:16px; border-radius:14px; margin-bottom:12px; box-shadow:0 3px 10px rgba(0,0,0,0.08); }
+.card h3 { margin:0 0 8px; font-size:18px; }
+.card p { margin:5px 0; font-size:15px; }
+.call { display:inline-block; margin-top:10px; padding:9px 13px; background:#1428a0; color:white; text-decoration:none; border-radius:9px; font-size:14px; font-weight:bold; }
+label { display:block; margin:12px 0 6px; font-weight:bold; font-size:14px; }
+input, select, textarea { width:100%; padding:12px; border:1px solid #ddd; border-radius:10px; font-size:15px; box-sizing:border-box; background:white; }
+textarea { min-height:90px; resize:vertical; }
+.submit-btn { margin-top:18px; width:100%; padding:15px; border:none; border-radius:12px; background:#1428a0; color:white; font-size:16px; font-weight:bold; }
+.reject-btn { margin-top:8px; width:100%; padding:15px; border:none; border-radius:12px; background:#555; color:white; font-size:16px; font-weight:bold; }
+.notice { margin-top:12px; font-size:14px; color:#555; }
+.status-wait { color:#f59e0b; font-weight:bold; }
+.password-box { margin-bottom:16px; }
+</style>
+</head>
+
+<body>
+
+<header>코스트코 큐레이터 가이드</header>
+
+<div class="container">
+
+  <div class="menu">
+    <button onclick="showSection('lead')">큐레이터 리드인원</button>
+    <button onclick="showSection('rotation')">순환 근무 신청</button>
+    <button onclick="showSection('leadRequest')">리드 방문 요청</button>
+    <button onclick="showSection('voc')">무엇을 하면 좋을까요?</button>
+    <button onclick="showSection('admin')">관리자 페이지</button>
+  </div>
+
+  <div id="lead" class="section active">
+    <h2>큐레이터 리드인원</h2>
+
+    <div class="card"><h3>강문흠</h3><p>점포: 혁신점</p><p>연락처: 010-0000-0000</p><a class="call" href="tel:010-0000-0000">전화하기</a></div>
+    <div class="card"><h3>이준호</h3><p>점포: 공세점</p><p>연락처: 010-0000-0000</p><a class="call" href="tel:010-0000-0000">전화하기</a></div>
+    <div class="card"><h3>김동규</h3><p>점포: 고척점</p><p>연락처: 010-0000-0000</p><a class="call" href="tel:010-0000-0000">전화하기</a></div>
+    <div class="card"><h3>우예빈</h3><p>점포: 양재점</p><p>연락처: 010-0000-0000</p><a class="call" href="tel:010-0000-0000">전화하기</a></div>
+    <div class="card"><h3>최명석</h3><p>점포: 대전점</p><p>연락처: 010-0000-0000</p><a class="call" href="tel:010-0000-0000">전화하기</a></div>
+    <div class="card"><h3>정성원</h3><p>점포: 광명점</p><p>연락처: 010-0000-0000</p><a class="call" href="tel:010-0000-0000">전화하기</a></div>
+    <div class="card"><h3>주혜원</h3><p>점포: 송도점</p><p>연락처: 010-0000-0000</p><a class="call" href="tel:010-0000-0000">전화하기</a></div>
+    <div class="card"><h3>김민경</h3><p>점포: 부산점</p><p>연락처: 010-0000-0000</p><a class="call" href="tel:010-0000-0000">전화하기</a></div>
+  </div>
+
+  <div id="rotation" class="section">
+    <h2>순환 근무 신청</h2>
+
+    <div class="card">
+      <label>이름</label>
+      <input type="text" id="rotationName" placeholder="이름을 입력하세요" />
+
+      <label>본인 점포</label>
+      <select id="rotationStore">
+        <option value="">점포를 선택하세요</option>
+      </select>
+
+      <label>순환 근무 요청점</label>
+      <select id="rotationRequestStore">
+        <option value="">요청 점포를 선택하세요</option>
+      </select>
+
+      <label>일자 📅</label>
+      <input type="date" id="rotationDate" />
+
+      <label>사유</label>
+      <textarea id="rotationReason" placeholder="순환 근무 요청 사유를 입력하세요"></textarea>
+
+      <button class="submit-btn" onclick="sendData('rotation')">신청하기</button>
+      <p class="notice" id="rotationResult"></p>
+    </div>
+  </div>
+
+  <div id="leadRequest" class="section">
+    <h2>리드 방문 요청</h2>
+
+    <div class="card">
+      <label>이름</label>
+      <input type="text" id="leadName" placeholder="이름을 입력하세요" />
+
+      <label>본인 점포</label>
+      <select id="leadStore">
+        <option value="">점포를 선택하세요</option>
+      </select>
+
+      <label>요청 리드</label>
+      <select id="leadPerson">
+        <option value="">요청 리드를 선택하세요</option>
+      </select>
+
+      <label>일자 📅</label>
+      <input type="date" id="leadDate" />
+
+      <label>사유</label>
+      <textarea id="leadReason" placeholder="리드 방문 요청 사유를 입력하세요"></textarea>
+
+      <button class="submit-btn" onclick="sendData('lead')">신청하기</button>
+      <p class="notice" id="leadResult"></p>
+    </div>
+  </div>
+
+  <div id="voc" class="section">
+    <h2>무엇을 하면 좋을까요?</h2>
+    <div class="card">
+      <h3>준비 중</h3>
+      <p>추후 가이드를 추가할 예정입니다.</p>
+    </div>
+  </div>
+
+  <div id="admin" class="section">
+    <h2>관리자 페이지</h2>
+
+    <div id="adminLoginBox" class="card password-box">
+      <label>관리자 비밀번호</label>
+      <input type="password" id="adminPassword" placeholder="비밀번호 입력" />
+      <button class="submit-btn" onclick="checkAdminPassword()">확인</button>
+      <p class="notice" id="adminLoginResult"></p>
+    </div>
+
+    <div id="adminContent" style="display:none;">
+      <div class="card">
+        <h3>순환 근무 신청 현황</h3>
+        <div id="adminRotationList">불러오는 중...</div>
+      </div>
+
+      <div class="card">
+        <h3>리드 방문 요청 현황</h3>
+        <div id="adminLeadList">불러오는 중...</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx7Jm9RwmxeZ_jfUhcfqE7J3AqnvNgaNvcZcwmnlL1iJgtbMolLNeBjAFCvOPVMSkma8g/exec";
+const ADMIN_PASSWORD = "10042";
+
+const stores = [
+  "양평", "대구", "대전", "양재", "일산", "부산", "울산", "광명", "천안", "의정부",
+  "상봉", "공세", "송도", "세종", "혁신", "하남", "김해", "고척", "청라", "평택"
+];
+
+const leads = [
+  "강문흠", "이준호", "김동규", "우예빈",
+  "최명석", "정성원", "주혜원", "김민경"
+];
+
+const rotationStore = document.getElementById("rotationStore");
+const rotationRequestStore = document.getElementById("rotationRequestStore");
+const leadStore = document.getElementById("leadStore");
+const leadPerson = document.getElementById("leadPerson");
+
+stores.forEach(store => {
+  rotationStore.innerHTML += `<option value="${store}">${store}</option>`;
+  rotationRequestStore.innerHTML += `<option value="${store}">${store}</option>`;
+  leadStore.innerHTML += `<option value="${store}">${store}</option>`;
+});
+
+leads.forEach(lead => {
+  leadPerson.innerHTML += `<option value="${lead}">${lead}</option>`;
+});
+
+function showSection(id) {
+  document.querySelectorAll(".section").forEach(section => {
+    section.classList.remove("active");
+  });
+
+  document.getElementById(id).classList.add("active");
+}
+
+function sendData(type) {
+  let data = {};
+
+  if (type === "rotation") {
+    data = {
+      type: "rotation",
+      name: document.getElementById("rotationName").value,
+      store: document.getElementById("rotationStore").value,
+      requestStore: document.getElementById("rotationRequestStore").value,
+      date: document.getElementById("rotationDate").value,
+      reason: document.getElementById("rotationReason").value
+    };
+
+    if (!data.name || !data.store || !data.requestStore || !data.date || !data.reason) {
+      document.getElementById("rotationResult").innerText = "모든 항목을 입력해주세요.";
+      return;
+    }
+  }
+
+  if (type === "lead") {
+    data = {
+      type: "lead",
+      name: document.getElementById("leadName").value,
+      store: document.getElementById("leadStore").value,
+      lead: document.getElementById("leadPerson").value,
+      date: document.getElementById("leadDate").value,
+      reason: document.getElementById("leadReason").value
+    };
+
+    if (!data.name || !data.store || !data.lead || !data.date || !data.reason) {
+      document.getElementById("leadResult").innerText = "모든 항목을 입력해주세요.";
+      return;
+    }
+  }
+
+  fetch(WEB_APP_URL, {
+    method: "POST",
+    body: JSON.stringify(data)
+  })
+  .then(() => {
+    if (type === "rotation") {
+      document.getElementById("rotationResult").innerText = "순환 근무 신청 완료 👍";
+
+      document.getElementById("rotationName").value = "";
+      document.getElementById("rotationStore").value = "";
+      document.getElementById("rotationRequestStore").value = "";
+      document.getElementById("rotationDate").value = "";
+      document.getElementById("rotationReason").value = "";
+    }
+
+    if (type === "lead") {
+      document.getElementById("leadResult").innerText = "리드 방문 요청 완료 👍";
+
+      document.getElementById("leadName").value = "";
+      document.getElementById("leadStore").value = "";
+      document.getElementById("leadPerson").value = "";
+      document.getElementById("leadDate").value = "";
+      document.getElementById("leadReason").value = "";
+    }
+  })
+  .catch(() => {
+    if (type === "rotation") {
+      document.getElementById("rotationResult").innerText = "전송 실패 ❌";
+    }
+
+    if (type === "lead") {
+      document.getElementById("leadResult").innerText = "전송 실패 ❌";
+    }
+  });
+}
+
+function checkAdminPassword() {
+  const password = document.getElementById("adminPassword").value;
+
+  if (password === ADMIN_PASSWORD) {
+    document.getElementById("adminLoginBox").style.display = "none";
+    document.getElementById("adminContent").style.display = "block";
+    loadAdminData();
+  } else {
+    document.getElementById("adminLoginResult").innerText = "비밀번호가 틀렸습니다.";
+  }
+}
+
+function loadAdminData() {
+  const oldScript = document.getElementById("jsonpScript");
+
+  if (oldScript) {
+    oldScript.remove();
+  }
+
+  const script = document.createElement("script");
+  script.id = "jsonpScript";
+  script.src = WEB_APP_URL + "?callback=handleAdminData&time=" + new Date().getTime();
+
+  document.body.appendChild(script);
+}
+
+function handleAdminData(data) {
+  const waitingRotation = data.rotation.filter(item => item.status === "대기" || !item.status);
+  const waitingLead = data.lead.filter(item => item.status === "대기" || !item.status);
+
+  renderAdminList("adminRotationList", waitingRotation);
+  renderAdminList("adminLeadList", waitingLead);
+}
+
+function formatDateOnly(value) {
+  if (!value) return "";
+
+  if (typeof value === "string" && value.includes("T")) {
+    const date = new Date(value);
+
+    return date.toLocaleDateString("ko-KR", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).replaceAll(". ", "-").replace(".", "");
+  }
+
+  return value;
+}
+
+function renderAdminList(elementId, list) {
+  const box = document.getElementById(elementId);
+
+  if (!list || list.length === 0) {
+    box.innerHTML = "<p>대기 중인 신청 내역이 없습니다.</p>";
+    return;
+  }
+
+  box.innerHTML = "";
+
+  list.reverse().forEach(item => {
+    box.innerHTML += `
+      <div class="card">
+        <p><b>이름:</b> ${item.name}</p>
+        <p><b>본인 점포:</b> ${item.store}</p>
+        <p><b>요청:</b> ${item.target}</p>
+        <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
+        <p><b>사유:</b> ${item.reason}</p>
+        <p><b>상태:</b> <span class="status-wait">대기</span></p>
+
+        <button class="submit-btn" onclick="updateStatus('${item.sheetName}', '${item.row}', '승인')">승인</button>
+        <button class="reject-btn" onclick="updateStatus('${item.sheetName}', '${item.row}', '반려')">반려</button>
+      </div>
+    `;
+  });
+}
+
+function updateStatus(sheetName, row, status) {
+  const card = event.target.closest(".card");
+  if (card) {
+    card.remove();
+  }
+
+  fetch(WEB_APP_URL, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "updateStatus",
+      sheetName: sheetName,
+      row: row,
+      status: status
+    })
+  })
+  .then(() => {
+    console.log(status + " 처리 완료");
+  })
+  .catch(() => {
+    alert("처리 실패. 새로고침 후 다시 확인해주세요.");
+    loadAdminData();
+  });
+}
+</script>
+
+</body>
+</html>
