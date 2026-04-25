@@ -241,7 +241,6 @@ const ADMIN_PASSWORD = "10042";
 const VOC_PASSWORD = "82820";
 
 const stores = ["양평","대구","대전","양재","일산","부산","울산","광명","천안","의정부","상봉","공세","송도","세종","혁신","하남","김해","고척","청라","평택"];
-
 const leads = ["강문흠","이준호","김동규","우예빈","최명석","정성원","주혜원","김민경"];
 
 function fillSelect(id, list) {
@@ -271,24 +270,54 @@ function getCheckedValues(className) {
 
 function formatDateOnly(value) {
   if (!value) return "";
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
 
-  if (typeof value === "string" && value.includes("T")) {
-    const date = new Date(value);
-    return date.toLocaleDateString("ko-KR", {
-      timeZone: "Asia/Seoul",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
-    }).replaceAll(". ", "-").replace(".", "");
-  }
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return value;
 
-  return value;
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 function statusClass(status) {
   if (status === "승인") return "status-ok";
   if (status === "반려") return "status-no";
   return "status-wait";
+}
+
+function displayStatus(status) {
+  if (!status || status === "") return "대기";
+  return status;
+}
+
+function isFinalStatus(value) {
+  return value === "승인" || value === "반려";
+}
+
+function normalizeLeadItem(item) {
+  const fixed = { ...item };
+
+  const storeLooksPassword = item.store && !stores.includes(item.store) && stores.includes(item.target);
+  const targetLooksStore = stores.includes(item.target);
+  const productsLooksLead = leads.includes(item.products);
+
+  if (storeLooksPassword && targetLooksStore && productsLooksLead) {
+    fixed.password = item.store;
+    fixed.store = item.target;
+    fixed.target = item.products;
+    fixed.products = item.date;
+    fixed.date = item.reason;
+    fixed.reason = isFinalStatus(item.status) ? "" : item.status;
+    fixed.status = isFinalStatus(item.status) ? item.status : "대기";
+  }
+
+  return fixed;
+}
+
+function isPendingItem(item) {
+  return !isFinalStatus(item.status);
 }
 
 function sendData(type) {
@@ -428,9 +457,13 @@ function loadAdminData() {
 }
 
 function handleAdminData(data) {
-  renderAdminList("adminRotationList", (data.rotation || []).filter(item => item.status === "대기" || !item.status));
-  renderAdminList("adminLeadList", (data.lead || []).filter(item => item.status === "대기" || !item.status));
-  renderAdminList("adminVocList", (data.voc || []).filter(item => item.status === "대기" || !item.status));
+  const rotationList = (data.rotation || []).filter(isPendingItem);
+  const leadList = (data.lead || []).map(normalizeLeadItem).filter(isPendingItem);
+  const vocList = (data.voc || []).filter(isPendingItem);
+
+  renderAdminList("adminRotationList", rotationList);
+  renderAdminList("adminLeadList", leadList);
+  renderAdminList("adminVocList", vocList);
 }
 
 function renderAdminList(elementId, list) {
@@ -443,45 +476,46 @@ function renderAdminList(elementId, list) {
 
   box.innerHTML = "";
 
-  list.reverse().forEach(item => {
+  list.slice().reverse().forEach(item => {
     let html = "";
 
     if (item.sheetName === "순환근무신청") {
       html = `
-        <p><b>이름:</b> ${item.name}</p>
-        <p><b>본인 점포:</b> ${item.store}</p>
-        <p><b>요청점:</b> ${item.target}</p>
+        <p><b>이름:</b> ${item.name || ""}</p>
+        <p><b>본인 점포:</b> ${item.store || ""}</p>
+        <p><b>요청점:</b> ${item.target || ""}</p>
         <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
-        <p><b>사유:</b> ${item.reason}</p>
+        <p><b>사유:</b> ${item.reason || ""}</p>
       `;
     }
 
     if (item.sheetName === "리드방문요청") {
+      item = normalizeLeadItem(item);
       html = `
-        <p><b>이름:</b> ${item.name}</p>
-        <p><b>본인 점포:</b> ${item.store}</p>
-        <p><b>요청 리드:</b> ${item.target}</p>
-        <p><b>품목:</b> ${item.products}</p>
+        <p><b>이름:</b> ${item.name || ""}</p>
+        <p><b>본인 점포:</b> ${item.store || ""}</p>
+        <p><b>요청 리드:</b> ${item.target || ""}</p>
+        <p><b>품목:</b> ${item.products || ""}</p>
         <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
-        <p><b>사유:</b> ${item.reason}</p>
+        <p><b>사유:</b> ${item.reason || ""}</p>
       `;
     }
 
     if (item.sheetName === "리드전용요청") {
       html = `
-        <p><b>리드:</b> ${item.lead}</p>
-        <p><b>교육 대상자:</b> ${item.members}</p>
-        <p><b>품목:</b> ${item.products}</p>
-        <p><b>요청 구분:</b> ${item.visitType}</p>
+        <p><b>리드:</b> ${item.lead || ""}</p>
+        <p><b>교육 대상자:</b> ${item.members || ""}</p>
+        <p><b>품목:</b> ${item.products || ""}</p>
+        <p><b>요청 구분:</b> ${item.visitType || ""}</p>
         <p><b>교육 기간:</b> ${formatDateOnly(item.start)} ~ ${formatDateOnly(item.end)}</p>
-        <p><b>사유:</b> ${item.reason}</p>
+        <p><b>사유:</b> ${item.reason || ""}</p>
       `;
     }
 
     box.innerHTML += `
       <div class="card">
         ${html}
-        <p><b>상태:</b> <span class="${statusClass(item.status)}">${item.status}</span></p>
+        <p><b>상태:</b> <span class="${statusClass(item.status)}">${displayStatus(item.status)}</span></p>
         <button class="submit-btn" onclick="updateStatus(event, '${item.sheetName}', '${item.row}', '승인')">승인</button>
         <button class="reject-btn" onclick="updateStatus(event, '${item.sheetName}', '${item.row}', '반려')">반려</button>
       </div>
@@ -507,8 +541,8 @@ function loadMyStatus() {
   const name = document.getElementById("myName").value.trim();
   const password = document.getElementById("myPw").value.trim();
 
-  if (!name) {
-    document.getElementById("myStatusMsg").innerText = "이름을 입력해주세요.";
+  if (!name || !password) {
+    document.getElementById("myStatusMsg").innerText = "이름과 비밀번호를 입력해주세요.";
     return;
   }
 
@@ -534,47 +568,54 @@ function handleMyStatus(data) {
 
   box.innerHTML = "";
 
-list.reverse().forEach(item => {
-  if (item.sheetName === "순환근무신청") {
-    box.innerHTML += `
-      <div class="card">
-        <p><b>유형:</b> 순환근무신청</p>
-        <p><b>요청점포:</b> ${item.target || ""}</p>
-        <p><b>요청일:</b> ${formatDateOnly(item.date)}</p>
-        <p><b>요청사유:</b> ${item.reason || ""}</p>
-        <p><b>상태:</b> <span class="${statusClass(item.status)}">${item.status || "대기"}</span></p>
-      </div>
-    `;
-  }
+  list.slice().reverse().forEach(raw => {
+    let item = raw;
 
-  if (item.sheetName === "리드방문요청") {
-    box.innerHTML += `
-      <div class="card">
-        <p><b>유형:</b> 리드방문요청</p>
-        <p><b>요청:</b> ${item.store || ""}</p>
-        <p><b>요청리드:</b> ${item.target || ""}</p>
-        <p><b>품목:</b> ${item.products || ""}</p>
-        <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
-        <p><b>상태:</b> <span class="${statusClass(item.status)}">${item.status || "대기"}</span></p>
-      </div>
-    `;
-  }
+    if (item.sheetName === "리드방문요청") {
+      item = normalizeLeadItem(item);
+    }
 
-  if (item.sheetName === "리드전용요청") {
-    box.innerHTML += `
-      <div class="card">
-        <p><b>유형:</b> 리드전용요청</p>
-        <p><b>리드:</b> ${item.lead || ""}</p>
-        <p><b>교육 대상자:</b> ${item.members || ""}</p>
-        <p><b>품목:</b> ${item.products || ""}</p>
-        <p><b>요청 구분:</b> ${item.visitType || ""}</p>
-        <p><b>교육 기간:</b> ${formatDateOnly(item.start)} ~ ${formatDateOnly(item.end)}</p>
-        <p><b>요청사유:</b> ${item.reason || ""}</p>
-        <p><b>상태:</b> <span class="${statusClass(item.status)}">${item.status || "대기"}</span></p>
-      </div>
-    `;
-  }
-});
+    if (item.sheetName === "순환근무신청") {
+      box.innerHTML += `
+        <div class="card">
+          <p><b>유형:</b> 순환근무신청</p>
+          <p><b>요청점포:</b> ${item.target || ""}</p>
+          <p><b>요청일:</b> ${formatDateOnly(item.date)}</p>
+          <p><b>요청사유:</b> ${item.reason || ""}</p>
+          <p><b>상태:</b> <span class="${statusClass(item.status)}">${displayStatus(item.status)}</span></p>
+        </div>
+      `;
+    }
+
+    if (item.sheetName === "리드방문요청") {
+      box.innerHTML += `
+        <div class="card">
+          <p><b>유형:</b> 리드방문요청</p>
+          <p><b>요청점포:</b> ${item.store || ""}</p>
+          <p><b>요청리드:</b> ${item.target || ""}</p>
+          <p><b>품목:</b> ${item.products || ""}</p>
+          <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
+          <p><b>요청사유:</b> ${item.reason || ""}</p>
+          <p><b>상태:</b> <span class="${statusClass(item.status)}">${displayStatus(item.status)}</span></p>
+        </div>
+      `;
+    }
+
+    if (item.sheetName === "리드전용요청") {
+      box.innerHTML += `
+        <div class="card">
+          <p><b>유형:</b> 리드전용요청</p>
+          <p><b>리드:</b> ${item.lead || ""}</p>
+          <p><b>교육 대상자:</b> ${item.members || ""}</p>
+          <p><b>품목:</b> ${item.products || ""}</p>
+          <p><b>요청 구분:</b> ${item.visitType || ""}</p>
+          <p><b>교육 기간:</b> ${formatDateOnly(item.start)} ~ ${formatDateOnly(item.end)}</p>
+          <p><b>요청사유:</b> ${item.reason || ""}</p>
+          <p><b>상태:</b> <span class="${statusClass(item.status)}">${displayStatus(item.status)}</span></p>
+        </div>
+      `;
+    }
+  });
 }
 
 function loadLeadPrivateData() {
@@ -599,7 +640,7 @@ function handleLeadPrivateData(data) {
     return;
   }
 
-  const leadRequests = data.leadRequests || [];
+  const leadRequests = (data.leadRequests || []).map(normalizeLeadItem);
   const vocRequests = data.vocRequests || [];
   let html = "";
 
@@ -608,15 +649,15 @@ function handleLeadPrivateData(data) {
   if (leadRequests.length === 0) {
     html += `<p>조회된 내역이 없습니다.</p>`;
   } else {
-    leadRequests.reverse().forEach(item => {
+    leadRequests.slice().reverse().forEach(item => {
       html += `
         <div class="card">
-          <p><b>신청자:</b> ${item.name}</p>
-          <p><b>점포:</b> ${item.store}</p>
-          <p><b>품목:</b> ${item.products}</p>
+          <p><b>신청자:</b> ${item.name || ""}</p>
+          <p><b>점포:</b> ${item.store || ""}</p>
+          <p><b>품목:</b> ${item.products || ""}</p>
           <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
-          <p><b>사유:</b> ${item.reason}</p>
-          <p><b>상태:</b> <span class="${statusClass(item.status)}">${item.status}</span></p>
+          <p><b>사유:</b> ${item.reason || ""}</p>
+          <p><b>상태:</b> <span class="${statusClass(item.status)}">${displayStatus(item.status)}</span></p>
         </div>
       `;
     });
@@ -629,15 +670,15 @@ function handleLeadPrivateData(data) {
   if (vocRequests.length === 0) {
     html += `<p>조회된 내역이 없습니다.</p>`;
   } else {
-    vocRequests.reverse().forEach(item => {
+    vocRequests.slice().reverse().forEach(item => {
       html += `
         <div class="card">
-          <p><b>교육 대상자:</b> ${item.members}</p>
-          <p><b>품목:</b> ${item.products}</p>
-          <p><b>요청 구분:</b> ${item.visitType}</p>
+          <p><b>교육 대상자:</b> ${item.members || ""}</p>
+          <p><b>품목:</b> ${item.products || ""}</p>
+          <p><b>요청 구분:</b> ${item.visitType || ""}</p>
           <p><b>교육 기간:</b> ${formatDateOnly(item.start)} ~ ${formatDateOnly(item.end)}</p>
-          <p><b>사유:</b> ${item.reason}</p>
-          <p><b>상태:</b> <span class="${statusClass(item.status)}">${item.status}</span></p>
+          <p><b>사유:</b> ${item.reason || ""}</p>
+          <p><b>상태:</b> <span class="${statusClass(item.status)}">${displayStatus(item.status)}</span></p>
         </div>
       `;
     });
