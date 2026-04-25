@@ -534,18 +534,47 @@ function handleMyStatus(data) {
 
   box.innerHTML = "";
 
-  list.reverse().forEach(item => {
+list.reverse().forEach(item => {
+  if (item.sheetName === "순환근무신청") {
     box.innerHTML += `
       <div class="card">
-        <p><b>유형:</b> ${item.sheetName}</p>
-        <p><b>요청:</b> ${item.target}</p>
-        ${item.products ? `<p><b>요청리드:</b> ${item.products}</p>` : ""}
-        <p><b>품목:</b> ${formatDateOnly(item.date)}</p>
-        <p><b>일자:</b> ${item.reason}</p>
-        <p><b>상태:</b> <span class="${statusClass(item.status)}">${item.status}</span></p>
+        <p><b>유형:</b> 순환근무신청</p>
+        <p><b>요청점포:</b> ${item.target || ""}</p>
+        <p><b>요청일:</b> ${formatDateOnly(item.date)}</p>
+        <p><b>요청사유:</b> ${item.reason || ""}</p>
+        <p><b>상태:</b> <span class="${statusClass(item.status)}">${item.status || "대기"}</span></p>
       </div>
     `;
-  });
+  }
+
+  if (item.sheetName === "리드방문요청") {
+    box.innerHTML += `
+      <div class="card">
+        <p><b>유형:</b> 리드방문요청</p>
+        <p><b>요청:</b> ${item.store || ""}</p>
+        <p><b>요청리드:</b> ${item.target || ""}</p>
+        <p><b>품목:</b> ${item.products || ""}</p>
+        <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
+        <p><b>상태:</b> <span class="${statusClass(item.status)}">${item.status || "대기"}</span></p>
+      </div>
+    `;
+  }
+
+  if (item.sheetName === "리드전용요청") {
+    box.innerHTML += `
+      <div class="card">
+        <p><b>유형:</b> 리드전용요청</p>
+        <p><b>리드:</b> ${item.lead || ""}</p>
+        <p><b>교육 대상자:</b> ${item.members || ""}</p>
+        <p><b>품목:</b> ${item.products || ""}</p>
+        <p><b>요청 구분:</b> ${item.visitType || ""}</p>
+        <p><b>교육 기간:</b> ${formatDateOnly(item.start)} ~ ${formatDateOnly(item.end)}</p>
+        <p><b>요청사유:</b> ${item.reason || ""}</p>
+        <p><b>상태:</b> <span class="${statusClass(item.status)}">${item.status || "대기"}</span></p>
+      </div>
+    `;
+  }
+});
 }
 
 function loadLeadPrivateData() {
