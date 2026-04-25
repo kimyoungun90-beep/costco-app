@@ -27,7 +27,6 @@ textarea { min-height:90px; resize:vertical; }
 .status-wait { color:#f59e0b; font-weight:bold; }
 .status-ok { color:#16a34a; font-weight:bold; }
 .status-no { color:#dc2626; font-weight:bold; }
-.password-box { margin-bottom:16px; }
 .check-list label { display:flex; align-items:center; gap:8px; font-weight:normal; margin:8px 0; }
 .check-list input { width:auto; }
 .small-text { font-size:13px; color:#777; }
@@ -35,7 +34,6 @@ textarea { min-height:90px; resize:vertical; }
 </head>
 
 <body>
-
 <header>코스트코 큐레이터 가이드</header>
 
 <div class="container">
@@ -69,7 +67,7 @@ textarea { min-height:90px; resize:vertical; }
 
       <label>신청 확인 비밀번호</label>
       <input type="password" id="rotationPw" placeholder="나중에 조회할 비밀번호를 입력하세요" />
-      <p class="small-text">내 신청 확인에서 본인 내역 조회 시 사용됩니다.</p>
+      <p class="small-text">내 신청 확인에서 조회할 때 사용됩니다.</p>
 
       <label>본인 점포</label>
       <select id="rotationStore"><option value="">점포를 선택하세요</option></select>
@@ -96,7 +94,7 @@ textarea { min-height:90px; resize:vertical; }
 
       <label>신청 확인 비밀번호</label>
       <input type="password" id="leadPw" placeholder="나중에 조회할 비밀번호를 입력하세요" />
-      <p class="small-text">내 신청 확인에서 본인 내역 조회 시 사용됩니다.</p>
+      <p class="small-text">내 신청 확인에서 조회할 때 사용됩니다.</p>
 
       <label>본인 점포</label>
       <select id="leadStore"><option value="">점포를 선택하세요</option></select>
@@ -127,7 +125,7 @@ textarea { min-height:90px; resize:vertical; }
   <div id="voc" class="section">
     <h2>리드 전용 요청</h2>
 
-    <div id="vocLoginBox" class="card password-box">
+    <div id="vocLoginBox" class="card">
       <label>리드 전용 비밀번호</label>
       <input type="password" id="vocPassword" placeholder="공용 비밀번호 입력" />
       <button class="submit-btn" onclick="checkVocPassword()">확인</button>
@@ -175,6 +173,7 @@ textarea { min-height:90px; resize:vertical; }
 
       <div class="card">
         <h3>리드별 방문 요청 현황 조회</h3>
+
         <label>리드 이름</label>
         <select id="leadCheckName"><option value="">리드를 선택하세요</option></select>
 
@@ -191,13 +190,13 @@ textarea { min-height:90px; resize:vertical; }
 
   <div id="myStatus" class="section">
     <h2>내 신청 확인</h2>
-
     <div class="card">
       <label>이름</label>
       <input type="text" id="myName" placeholder="신청 시 입력한 이름" />
 
       <label>신청 확인 비밀번호</label>
       <input type="password" id="myPw" placeholder="신청 시 입력한 비밀번호" />
+      <p class="small-text">기존 신청 건은 비밀번호 없이 이름만 맞아도 조회됩니다.</p>
 
       <button class="submit-btn" onclick="loadMyStatus()">조회하기</button>
       <p class="notice" id="myStatusMsg"></p>
@@ -209,7 +208,7 @@ textarea { min-height:90px; resize:vertical; }
   <div id="admin" class="section">
     <h2>관리자 페이지</h2>
 
-    <div id="adminLoginBox" class="card password-box">
+    <div id="adminLoginBox" class="card">
       <label>관리자 비밀번호</label>
       <input type="password" id="adminPassword" placeholder="비밀번호 입력" />
       <button class="submit-btn" onclick="checkAdminPassword()">확인</button>
@@ -241,18 +240,13 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx7Jm9RwmxeZ_jfUhcf
 const ADMIN_PASSWORD = "10042";
 const VOC_PASSWORD = "82820";
 
-const stores = [
-  "양평", "대구", "대전", "양재", "일산", "부산", "울산", "광명", "천안", "의정부",
-  "상봉", "공세", "송도", "세종", "혁신", "하남", "김해", "고척", "청라", "평택"
-];
+const stores = ["양평","대구","대전","양재","일산","부산","울산","광명","천안","의정부","상봉","공세","송도","세종","혁신","하남","김해","고척","청라","평택"];
 
-const leads = [
-  "강문흠", "이준호", "김동규", "우예빈",
-  "최명석", "정성원", "주혜원", "김민경"
-];
+const leads = ["강문흠","이준호","김동규","우예빈","최명석","정성원","주혜원","김민경"];
 
 function fillSelect(id, list) {
   const select = document.getElementById(id);
+  if (!select) return;
   list.forEach(item => {
     select.innerHTML += `<option value="${item}">${item}</option>`;
   });
@@ -273,6 +267,28 @@ function showSection(id) {
 function getCheckedValues(className) {
   const checked = document.querySelectorAll("." + className + ":checked");
   return Array.from(checked).map(item => item.value).join(", ");
+}
+
+function formatDateOnly(value) {
+  if (!value) return "";
+
+  if (typeof value === "string" && value.includes("T")) {
+    const date = new Date(value);
+    return date.toLocaleDateString("ko-KR", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).replaceAll(". ", "-").replace(".", "");
+  }
+
+  return value;
+}
+
+function statusClass(status) {
+  if (status === "승인") return "status-ok";
+  if (status === "반려") return "status-no";
+  return "status-wait";
 }
 
 function sendData(type) {
@@ -317,29 +333,16 @@ function sendData(type) {
     document.getElementById("leadResult").innerText = "전송 중...";
   }
 
-  fetch(WEB_APP_URL, {
-    method: "POST",
-    body: JSON.stringify(data)
-  })
+  fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify(data) })
   .then(() => {
     if (type === "rotation") {
       document.getElementById("rotationResult").innerText = "순환 근무 신청 완료 👍";
-      document.getElementById("rotationName").value = "";
-      document.getElementById("rotationPw").value = "";
-      document.getElementById("rotationStore").value = "";
-      document.getElementById("rotationRequestStore").value = "";
-      document.getElementById("rotationDate").value = "";
-      document.getElementById("rotationReason").value = "";
+      ["rotationName","rotationPw","rotationStore","rotationRequestStore","rotationDate","rotationReason"].forEach(id => document.getElementById(id).value = "");
     }
 
     if (type === "lead") {
       document.getElementById("leadResult").innerText = "리드 방문 요청 완료 👍";
-      document.getElementById("leadName").value = "";
-      document.getElementById("leadPw").value = "";
-      document.getElementById("leadStore").value = "";
-      document.getElementById("leadPerson").value = "";
-      document.getElementById("leadDate").value = "";
-      document.getElementById("leadReason").value = "";
+      ["leadName","leadPw","leadStore","leadPerson","leadDate","leadReason"].forEach(id => document.getElementById(id).value = "");
       document.querySelectorAll(".productCheck").forEach(check => check.checked = false);
     }
   })
@@ -379,18 +382,10 @@ function sendVocData() {
 
   document.getElementById("vocResult").innerText = "전송 중...";
 
-  fetch(WEB_APP_URL, {
-    method: "POST",
-    body: JSON.stringify(data)
-  })
+  fetch(WEB_APP_URL, { method: "POST", body: JSON.stringify(data) })
   .then(() => {
     document.getElementById("vocResult").innerText = "리드 전용 요청 완료 👍";
-    document.getElementById("vocLead").value = "";
-    document.getElementById("vocMembers").value = "";
-    document.getElementById("vocType").value = "";
-    document.getElementById("vocStartDate").value = "";
-    document.getElementById("vocEndDate").value = "";
-    document.getElementById("vocReason").value = "";
+    ["vocLead","vocMembers","vocType","vocStartDate","vocEndDate","vocReason"].forEach(id => document.getElementById(id).value = "");
     document.querySelectorAll(".vocProductCheck").forEach(check => check.checked = false);
   })
   .catch(() => {
@@ -433,34 +428,9 @@ function loadAdminData() {
 }
 
 function handleAdminData(data) {
-  const waitingRotation = data.rotation.filter(item => item.status === "대기" || !item.status);
-  const waitingLead = data.lead.filter(item => item.status === "대기" || !item.status);
-  const waitingVoc = data.voc.filter(item => item.status === "대기" || !item.status);
-
-  renderAdminList("adminRotationList", waitingRotation);
-  renderAdminList("adminLeadList", waitingLead);
-  renderAdminList("adminVocList", waitingVoc);
-}
-
-function statusClass(status) {
-  function formatDateOnly(value) {
-  if (!value) return "";
-
-  if (typeof value === "string" && value.includes("T")) {
-    const date = new Date(value);
-    return date.toLocaleDateString("ko-KR", {
-      timeZone: "Asia/Seoul",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
-    }).replaceAll(". ", "-").replace(".", "");
-  }
-
-  return value;
-}
-  if (status === "승인") return "status-ok";
-  if (status === "반려") return "status-no";
-  return "status-wait";
+  renderAdminList("adminRotationList", (data.rotation || []).filter(item => item.status === "대기" || !item.status));
+  renderAdminList("adminLeadList", (data.lead || []).filter(item => item.status === "대기" || !item.status));
+  renderAdminList("adminVocList", (data.voc || []).filter(item => item.status === "대기" || !item.status));
 }
 
 function renderAdminList(elementId, list) {
@@ -525,14 +495,8 @@ function updateStatus(event, sheetName, row, status) {
 
   fetch(WEB_APP_URL, {
     method: "POST",
-    body: JSON.stringify({
-      action: "updateStatus",
-      sheetName: sheetName,
-      row: row,
-      status: status
-    })
+    body: JSON.stringify({ action: "updateStatus", sheetName: sheetName, row: row, status: status })
   })
-  .then(() => console.log(status + " 처리 완료"))
   .catch(() => {
     alert("처리 실패. 새로고침 후 다시 확인해주세요.");
     loadAdminData();
@@ -549,16 +513,11 @@ function loadMyStatus() {
   }
 
   document.getElementById("myStatusMsg").innerText = "조회 중...";
-
-  loadJsonp("myStatus", "handleMyStatus", {
-    name: name,
-    password: password
-  });
+  loadJsonp("myStatus", "handleMyStatus", { name: name, password: password });
 }
 
 function handleMyStatus(data) {
   document.getElementById("myStatusMsg").innerText = "";
-
   const box = document.getElementById("myStatusResult");
 
   if (!data.success) {
@@ -574,6 +533,7 @@ function handleMyStatus(data) {
   }
 
   box.innerHTML = "";
+
   list.reverse().forEach(item => {
     box.innerHTML += `
       <div class="card">
@@ -603,7 +563,6 @@ function loadLeadPrivateData() {
 
 function handleLeadPrivateData(data) {
   document.getElementById("leadPrivateMsg").innerText = "";
-
   const box = document.getElementById("leadPrivateResult");
 
   if (!data.success) {
@@ -613,10 +572,10 @@ function handleLeadPrivateData(data) {
 
   const leadRequests = data.leadRequests || [];
   const vocRequests = data.vocRequests || [];
-
   let html = "";
 
   html += `<div class="card"><h3>내게 들어온 리드 방문 요청</h3>`;
+
   if (leadRequests.length === 0) {
     html += `<p>조회된 내역이 없습니다.</p>`;
   } else {
@@ -633,9 +592,11 @@ function handleLeadPrivateData(data) {
       `;
     });
   }
+
   html += `</div>`;
 
   html += `<div class="card"><h3>내 리드 전용 요청</h3>`;
+
   if (vocRequests.length === 0) {
     html += `<p>조회된 내역이 없습니다.</p>`;
   } else {
@@ -645,15 +606,15 @@ function handleLeadPrivateData(data) {
           <p><b>교육 대상자:</b> ${item.members}</p>
           <p><b>품목:</b> ${item.products}</p>
           <p><b>요청 구분:</b> ${item.visitType}</p>
-          <p><b>교육 기간:</b> ${item.start} ~ ${item.end}</p>
+          <p><b>교육 기간:</b> ${formatDateOnly(item.start)} ~ ${formatDateOnly(item.end)}</p>
           <p><b>사유:</b> ${item.reason}</p>
           <p><b>상태:</b> <span class="${statusClass(item.status)}">${item.status}</span></p>
         </div>
       `;
     });
   }
-  html += `</div>`;
 
+  html += `</div>`;
   box.innerHTML = html;
 }
 </script>
