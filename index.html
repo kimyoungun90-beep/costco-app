@@ -141,16 +141,16 @@ textarea { min-height:90px; resize:vertical; }
         </select>
 
         <label>교육 대상자</label>
-        <textarea id="vocMembers" placeholder="교육 대상자 이름 입력 (예: 홍길동, 김철수)"></textarea>
+        <textarea id="vocMembers" placeholder="교육 대상자 이름 입력 예: 홍길동, 김철수"></textarea>
 
-<label>품목 선택 / 중복 가능</label>
-<div class="check-list">
-  <label><input type="checkbox" class="vocProductCheck" value="모바일"> 모바일</label>
-  <label><input type="checkbox" class="vocProductCheck" value="노트북"> 노트북</label>
-  <label><input type="checkbox" class="vocProductCheck" value="탭"> 탭</label>
-  <label><input type="checkbox" class="vocProductCheck" value="웨어러블"> 웨어러블</label>
-  <label><input type="checkbox" class="vocProductCheck" value="그 외 기타"> 그 외 기타</label>
-</div>
+        <label>품목 선택 / 중복 가능</label>
+        <div class="check-list">
+          <label><input type="checkbox" class="vocProductCheck" value="모바일"> 모바일</label>
+          <label><input type="checkbox" class="vocProductCheck" value="노트북"> 노트북</label>
+          <label><input type="checkbox" class="vocProductCheck" value="탭"> 탭</label>
+          <label><input type="checkbox" class="vocProductCheck" value="웨어러블"> 웨어러블</label>
+          <label><input type="checkbox" class="vocProductCheck" value="그 외 기타"> 그 외 기타</label>
+        </div>
 
         <label>요청 구분</label>
         <select id="vocType">
@@ -244,6 +244,11 @@ function getSelectedProducts() {
   return Array.from(checked).map(item => item.value).join(", ");
 }
 
+function getSelectedVocProducts() {
+  const checked = document.querySelectorAll(".vocProductCheck:checked");
+  return Array.from(checked).map(item => item.value).join(", ");
+}
+
 function sendData(type) {
   let data = {};
 
@@ -291,7 +296,6 @@ function sendData(type) {
   .then(() => {
     if (type === "rotation") {
       document.getElementById("rotationResult").innerText = "순환 근무 신청 완료 👍";
-
       document.getElementById("rotationName").value = "";
       document.getElementById("rotationStore").value = "";
       document.getElementById("rotationRequestStore").value = "";
@@ -301,13 +305,11 @@ function sendData(type) {
 
     if (type === "lead") {
       document.getElementById("leadResult").innerText = "리드 방문 요청 완료 👍";
-
       document.getElementById("leadName").value = "";
       document.getElementById("leadStore").value = "";
       document.getElementById("leadPerson").value = "";
       document.getElementById("leadDate").value = "";
       document.getElementById("leadReason").value = "";
-
       document.querySelectorAll(".productCheck").forEach(check => {
         check.checked = false;
       });
@@ -340,12 +342,14 @@ function sendVocData() {
     type: "voc",
     lead: document.getElementById("vocLead").value,
     members: document.getElementById("vocMembers").value,
+    products: getSelectedVocProducts(),
     visitType: document.getElementById("vocType").value,
     start: document.getElementById("vocStartDate").value,
     end: document.getElementById("vocEndDate").value,
     reason: document.getElementById("vocReason").value
+  };
 
- if (!data.lead || !data.members || !data.products || !data.visitType || !data.start || !data.end || !data.reason) {
+  if (!data.lead || !data.members || !data.products || !data.visitType || !data.start || !data.end || !data.reason) {
     document.getElementById("vocResult").innerText = "모든 항목을 입력해주세요.";
     return;
   }
@@ -360,11 +364,15 @@ function sendVocData() {
     document.getElementById("vocResult").innerText = "리드 전용 요청 완료 👍";
 
     document.getElementById("vocLead").value = "";
-    document.getElementById("vocmembers").value = "";
+    document.getElementById("vocMembers").value = "";
     document.getElementById("vocType").value = "";
     document.getElementById("vocStartDate").value = "";
     document.getElementById("vocEndDate").value = "";
     document.getElementById("vocReason").value = "";
+
+    document.querySelectorAll(".vocProductCheck").forEach(check => {
+      check.checked = false;
+    });
   })
   .catch(() => {
     document.getElementById("vocResult").innerText = "전송 실패 ❌";
