@@ -26,6 +26,8 @@ textarea { min-height:90px; resize:vertical; }
 .notice { margin-top:12px; font-size:14px; color:#555; }
 .status-wait { color:#f59e0b; font-weight:bold; }
 .password-box { margin-bottom:16px; }
+.check-list label { display:flex; align-items:center; gap:8px; font-weight:normal; margin:8px 0; }
+.check-list input { width:auto; }
 </style>
 </head>
 
@@ -39,7 +41,7 @@ textarea { min-height:90px; resize:vertical; }
     <button onclick="showSection('lead')">큐레이터 리드인원</button>
     <button onclick="showSection('rotation')">순환 근무 신청</button>
     <button onclick="showSection('leadRequest')">리드 방문 요청</button>
-    <button onclick="showSection('voc')">무엇을 하면 좋을까요?</button>
+    <button onclick="showSection('voc')">리드 전용 요청</button>
     <button onclick="showSection('admin')">관리자 페이지</button>
   </div>
 
@@ -101,6 +103,15 @@ textarea { min-height:90px; resize:vertical; }
         <option value="">요청 리드를 선택하세요</option>
       </select>
 
+      <label>품목 선택 / 중복 가능</label>
+      <div class="check-list">
+        <label><input type="checkbox" class="productCheck" value="모바일"> 모바일</label>
+        <label><input type="checkbox" class="productCheck" value="노트북"> 노트북</label>
+        <label><input type="checkbox" class="productCheck" value="탭"> 탭</label>
+        <label><input type="checkbox" class="productCheck" value="웨어러블"> 웨어러블</label>
+        <label><input type="checkbox" class="productCheck" value="그 외 기타"> 그 외 기타</label>
+      </div>
+
       <label>일자 📅</label>
       <input type="date" id="leadDate" />
 
@@ -113,10 +124,53 @@ textarea { min-height:90px; resize:vertical; }
   </div>
 
   <div id="voc" class="section">
-    <h2>무엇을 하면 좋을까요?</h2>
-    <div class="card">
-      <h3>준비 중</h3>
-      <p>추후 가이드를 추가할 예정입니다.</p>
+    <h2>리드 전용 요청</h2>
+
+    <div id="vocLoginBox" class="card password-box">
+      <label>리드 전용 비밀번호</label>
+      <input type="password" id="vocPassword" placeholder="비밀번호 입력" />
+      <button class="submit-btn" onclick="checkVocPassword()">확인</button>
+      <p class="notice" id="vocLoginResult"></p>
+    </div>
+
+    <div id="vocContent" style="display:none;">
+      <div class="card">
+        <label>리드 이름</label>
+        <select id="vocLead">
+          <option value="">리드를 선택하세요</option>
+        </select>
+
+        <label>교육 대상자</label>
+        <input type="number" id="vocCount" placeholder="교육 인원을 입력하세요" />
+
+<label>품목 선택 / 중복 가능</label>
+<div class="check-list">
+  <label><input type="checkbox" class="vocProductCheck" value="모바일"> 모바일</label>
+  <label><input type="checkbox" class="vocProductCheck" value="노트북"> 노트북</label>
+  <label><input type="checkbox" class="vocProductCheck" value="탭"> 탭</label>
+  <label><input type="checkbox" class="vocProductCheck" value="웨어러블"> 웨어러블</label>
+  <label><input type="checkbox" class="vocProductCheck" value="그 외 기타"> 그 외 기타</label>
+</div>
+
+        <label>요청 구분</label>
+        <select id="vocType">
+          <option value="">요청 구분을 선택하세요</option>
+          <option value="본인 매장 호출">본인 매장 호출</option>
+          <option value="본인이 방문">본인이 방문</option>
+        </select>
+
+        <label>교육 시작일 📅</label>
+        <input type="date" id="vocStartDate" />
+
+        <label>교육 종료일 📅</label>
+        <input type="date" id="vocEndDate" />
+
+        <label>사유</label>
+        <textarea id="vocReason" placeholder="요청 사유를 입력하세요"></textarea>
+
+        <button class="submit-btn" onclick="sendVocData()">요청하기</button>
+        <p class="notice" id="vocResult"></p>
+      </div>
     </div>
   </div>
 
@@ -148,6 +202,7 @@ textarea { min-height:90px; resize:vertical; }
 <script>
 const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbx7Jm9RwmxeZ_jfUhcfqE7J3AqnvNgaNvcZcwmnlL1iJgtbMolLNeBjAFCvOPVMSkma8g/exec";
 const ADMIN_PASSWORD = "10042";
+const VOC_PASSWORD = "82820";
 
 const stores = [
   "양평", "대구", "대전", "양재", "일산", "부산", "울산", "광명", "천안", "의정부",
@@ -163,6 +218,7 @@ const rotationStore = document.getElementById("rotationStore");
 const rotationRequestStore = document.getElementById("rotationRequestStore");
 const leadStore = document.getElementById("leadStore");
 const leadPerson = document.getElementById("leadPerson");
+const vocLead = document.getElementById("vocLead");
 
 stores.forEach(store => {
   rotationStore.innerHTML += `<option value="${store}">${store}</option>`;
@@ -172,6 +228,7 @@ stores.forEach(store => {
 
 leads.forEach(lead => {
   leadPerson.innerHTML += `<option value="${lead}">${lead}</option>`;
+  vocLead.innerHTML += `<option value="${lead}">${lead}</option>`;
 });
 
 function showSection(id) {
@@ -180,6 +237,11 @@ function showSection(id) {
   });
 
   document.getElementById(id).classList.add("active");
+}
+
+function getSelectedProducts() {
+  const checked = document.querySelectorAll(".productCheck:checked");
+  return Array.from(checked).map(item => item.value).join(", ");
 }
 
 function sendData(type) {
@@ -199,6 +261,8 @@ function sendData(type) {
       document.getElementById("rotationResult").innerText = "모든 항목을 입력해주세요.";
       return;
     }
+
+    document.getElementById("rotationResult").innerText = "전송 중...";
   }
 
   if (type === "lead") {
@@ -207,14 +271,17 @@ function sendData(type) {
       name: document.getElementById("leadName").value,
       store: document.getElementById("leadStore").value,
       lead: document.getElementById("leadPerson").value,
+      products: getSelectedProducts(),
       date: document.getElementById("leadDate").value,
       reason: document.getElementById("leadReason").value
     };
 
-    if (!data.name || !data.store || !data.lead || !data.date || !data.reason) {
+    if (!data.name || !data.store || !data.lead || !data.products || !data.date || !data.reason) {
       document.getElementById("leadResult").innerText = "모든 항목을 입력해주세요.";
       return;
     }
+
+    document.getElementById("leadResult").innerText = "전송 중...";
   }
 
   fetch(WEB_APP_URL, {
@@ -240,6 +307,10 @@ function sendData(type) {
       document.getElementById("leadPerson").value = "";
       document.getElementById("leadDate").value = "";
       document.getElementById("leadReason").value = "";
+
+      document.querySelectorAll(".productCheck").forEach(check => {
+        check.checked = false;
+      });
     }
   })
   .catch(() => {
@@ -250,6 +321,54 @@ function sendData(type) {
     if (type === "lead") {
       document.getElementById("leadResult").innerText = "전송 실패 ❌";
     }
+  });
+}
+
+function checkVocPassword() {
+  const password = document.getElementById("vocPassword").value;
+
+  if (password === VOC_PASSWORD) {
+    document.getElementById("vocLoginBox").style.display = "none";
+    document.getElementById("vocContent").style.display = "block";
+  } else {
+    document.getElementById("vocLoginResult").innerText = "비밀번호가 틀렸습니다.";
+  }
+}
+
+function sendVocData() {
+  const data = {
+    type: "voc",
+    lead: document.getElementById("vocLead").value,
+    count: document.getElementById("vocCount").value,
+    visitType: document.getElementById("vocType").value,
+    start: document.getElementById("vocStartDate").value,
+    end: document.getElementById("vocEndDate").value,
+    reason: document.getElementById("vocReason").value
+  };
+
+  if (!data.lead || !data.count || !data.visitType || !data.start || !data.end || !data.reason) {
+    document.getElementById("vocResult").innerText = "모든 항목을 입력해주세요.";
+    return;
+  }
+
+  document.getElementById("vocResult").innerText = "전송 중...";
+
+  fetch(WEB_APP_URL, {
+    method: "POST",
+    body: JSON.stringify(data)
+  })
+  .then(() => {
+    document.getElementById("vocResult").innerText = "리드 전용 요청 완료 👍";
+
+    document.getElementById("vocLead").value = "";
+    document.getElementById("vocCount").value = "";
+    document.getElementById("vocType").value = "";
+    document.getElementById("vocStartDate").value = "";
+    document.getElementById("vocEndDate").value = "";
+    document.getElementById("vocReason").value = "";
+  })
+  .catch(() => {
+    document.getElementById("vocResult").innerText = "전송 실패 ❌";
   });
 }
 
@@ -287,23 +406,6 @@ function handleAdminData(data) {
   renderAdminList("adminLeadList", waitingLead);
 }
 
-function formatDateOnly(value) {
-  if (!value) return "";
-
-  if (typeof value === "string" && value.includes("T")) {
-    const date = new Date(value);
-
-    return date.toLocaleDateString("ko-KR", {
-      timeZone: "Asia/Seoul",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit"
-    }).replaceAll(". ", "-").replace(".", "");
-  }
-
-  return value;
-}
-
 function renderAdminList(elementId, list) {
   const box = document.getElementById(elementId);
 
@@ -315,24 +417,32 @@ function renderAdminList(elementId, list) {
   box.innerHTML = "";
 
   list.reverse().forEach(item => {
+    let productLine = "";
+
+    if (item.products) {
+      productLine = `<p><b>품목:</b> ${item.products}</p>`;
+    }
+
     box.innerHTML += `
       <div class="card">
         <p><b>이름:</b> ${item.name}</p>
         <p><b>본인 점포:</b> ${item.store}</p>
         <p><b>요청:</b> ${item.target}</p>
-        <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
+        ${productLine}
+        <p><b>일자:</b> ${item.date}</p>
         <p><b>사유:</b> ${item.reason}</p>
         <p><b>상태:</b> <span class="status-wait">대기</span></p>
 
-        <button class="submit-btn" onclick="updateStatus('${item.sheetName}', '${item.row}', '승인')">승인</button>
-        <button class="reject-btn" onclick="updateStatus('${item.sheetName}', '${item.row}', '반려')">반려</button>
+        <button class="submit-btn" onclick="updateStatus(event, '${item.sheetName}', '${item.row}', '승인')">승인</button>
+        <button class="reject-btn" onclick="updateStatus(event, '${item.sheetName}', '${item.row}', '반려')">반려</button>
       </div>
     `;
   });
 }
 
-function updateStatus(sheetName, row, status) {
+function updateStatus(event, sheetName, row, status) {
   const card = event.target.closest(".card");
+
   if (card) {
     card.remove();
   }
