@@ -539,9 +539,9 @@ function handleMyStatus(data) {
       <div class="card">
         <p><b>유형:</b> ${item.sheetName}</p>
         <p><b>요청:</b> ${item.target}</p>
-        ${item.products ? `<p><b>품목:</b> ${item.products}</p>` : ""}
-        <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
-        <p><b>사유:</b> ${item.reason}</p>
+        ${item.products ? `<p><b>요청리드:</b> ${item.products}</p>` : ""}
+        <p><b>품목:</b> ${formatDateOnly(item.date)}</p>
+        <p><b>일자:</b> ${item.reason}</p>
         <p><b>상태:</b> <span class="${statusClass(item.status)}">${item.status}</span></p>
       </div>
     `;
