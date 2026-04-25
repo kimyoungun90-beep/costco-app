@@ -3,7 +3,10 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>코스트코 큐레이터 가이드</title>
+<title>큐레이터 순환근무 신청앱</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1428a0">
 
 <style>
 body { margin:0; font-family:Arial, sans-serif; background:#f4f6f8; color:#222; }
@@ -64,23 +67,17 @@ textarea { min-height:90px; resize:vertical; }
     <div class="card">
       <label>이름</label>
       <input type="text" id="rotationName" placeholder="이름을 입력하세요" />
-
       <label>신청 확인 비밀번호</label>
       <input type="password" id="rotationPw" placeholder="나중에 조회할 비밀번호를 입력하세요" />
       <p class="small-text">내 신청 확인에서 조회할 때 사용됩니다.</p>
-
       <label>본인 점포</label>
       <select id="rotationStore"><option value="">점포를 선택하세요</option></select>
-
       <label>순환 근무 요청점</label>
       <select id="rotationRequestStore"><option value="">요청 점포를 선택하세요</option></select>
-
       <label>일자 📅</label>
       <input type="date" id="rotationDate" />
-
       <label>사유</label>
       <textarea id="rotationReason" placeholder="순환 근무 요청 사유를 입력하세요"></textarea>
-
       <button class="submit-btn" onclick="sendData('rotation')">신청하기</button>
       <p class="notice" id="rotationResult"></p>
     </div>
@@ -91,17 +88,13 @@ textarea { min-height:90px; resize:vertical; }
     <div class="card">
       <label>이름</label>
       <input type="text" id="leadName" placeholder="이름을 입력하세요" />
-
       <label>신청 확인 비밀번호</label>
       <input type="password" id="leadPw" placeholder="나중에 조회할 비밀번호를 입력하세요" />
       <p class="small-text">내 신청 확인에서 조회할 때 사용됩니다.</p>
-
       <label>본인 점포</label>
       <select id="leadStore"><option value="">점포를 선택하세요</option></select>
-
       <label>요청 리드</label>
       <select id="leadPerson"><option value="">요청 리드를 선택하세요</option></select>
-
       <label>품목 선택 / 중복 가능</label>
       <div class="check-list">
         <label><input type="checkbox" class="productCheck" value="모바일"> 모바일</label>
@@ -110,13 +103,10 @@ textarea { min-height:90px; resize:vertical; }
         <label><input type="checkbox" class="productCheck" value="웨어러블"> 웨어러블</label>
         <label><input type="checkbox" class="productCheck" value="그 외 기타"> 그 외 기타</label>
       </div>
-
       <label>일자 📅</label>
       <input type="date" id="leadDate" />
-
       <label>사유</label>
       <textarea id="leadReason" placeholder="리드 방문 요청 사유를 입력하세요"></textarea>
-
       <button class="submit-btn" onclick="sendData('lead')">신청하기</button>
       <p class="notice" id="leadResult"></p>
     </div>
@@ -135,13 +125,10 @@ textarea { min-height:90px; resize:vertical; }
     <div id="vocContent" style="display:none;">
       <div class="card">
         <h3>리드 전용 요청 작성</h3>
-
         <label>본인 이름</label>
         <select id="vocLead"><option value="">리드를 선택하세요</option></select>
-
         <label>교육 대상자</label>
         <textarea id="vocMembers" placeholder="교육 대상자 이름 입력 예: 홍길동, 김철수"></textarea>
-
         <label>품목 선택 / 중복 가능</label>
         <div class="check-list">
           <label><input type="checkbox" class="vocProductCheck" value="모바일"> 모바일</label>
@@ -150,36 +137,28 @@ textarea { min-height:90px; resize:vertical; }
           <label><input type="checkbox" class="vocProductCheck" value="웨어러블"> 웨어러블</label>
           <label><input type="checkbox" class="vocProductCheck" value="그 외 기타"> 그 외 기타</label>
         </div>
-
         <label>요청 구분</label>
         <select id="vocType">
           <option value="">요청 구분을 선택하세요</option>
           <option value="본인 매장 호출">본인 매장 호출</option>
           <option value="본인이 방문">본인이 방문</option>
         </select>
-
         <label>교육 시작일 📅</label>
         <input type="date" id="vocStartDate" />
-
         <label>교육 종료일 📅</label>
         <input type="date" id="vocEndDate" />
-
         <label>사유</label>
         <textarea id="vocReason" placeholder="요청 사유를 입력하세요"></textarea>
-
         <button class="submit-btn" onclick="sendVocData()">요청하기</button>
         <p class="notice" id="vocResult"></p>
       </div>
 
       <div class="card">
         <h3>리드별 방문 요청 현황 조회</h3>
-
         <label>리드 이름</label>
         <select id="leadCheckName"><option value="">리드를 선택하세요</option></select>
-
         <label>개인 비밀번호</label>
         <input type="password" id="leadCheckPw" placeholder="개인 비밀번호 입력" />
-
         <button class="submit-btn" onclick="loadLeadPrivateData()">내 현황 조회</button>
         <p class="notice" id="leadPrivateMsg"></p>
       </div>
@@ -193,21 +172,17 @@ textarea { min-height:90px; resize:vertical; }
     <div class="card">
       <label>이름</label>
       <input type="text" id="myName" placeholder="신청 시 입력한 이름" />
-
       <label>신청 확인 비밀번호</label>
       <input type="password" id="myPw" placeholder="신청 시 입력한 비밀번호" />
       <p class="small-text">비밀번호 분실 시 재신청 해주십시오.</p>
-
       <button class="submit-btn" onclick="loadMyStatus()">조회하기</button>
       <p class="notice" id="myStatusMsg"></p>
     </div>
-
     <div id="myStatusResult"></div>
   </div>
 
   <div id="admin" class="section">
     <h2>관리자 페이지</h2>
-
     <div id="adminLoginBox" class="card">
       <label>관리자 비밀번호</label>
       <input type="password" id="adminPassword" placeholder="비밀번호 입력" />
@@ -220,12 +195,10 @@ textarea { min-height:90px; resize:vertical; }
         <h3>순환 근무 신청 현황</h3>
         <div id="adminRotationList">불러오는 중...</div>
       </div>
-
       <div class="card">
         <h3>리드 방문 요청 현황</h3>
         <div id="adminLeadList">불러오는 중...</div>
       </div>
-
       <div class="card">
         <h3>리드 전용 요청 현황</h3>
         <div id="adminVocList">불러오는 중...</div>
@@ -271,10 +244,8 @@ function getCheckedValues(className) {
 function formatDateOnly(value) {
   if (!value) return "";
   if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-
   const date = new Date(value);
   if (isNaN(date.getTime())) return value;
-
   const yyyy = date.getFullYear();
   const mm = String(date.getMonth() + 1).padStart(2, "0");
   const dd = String(date.getDate()).padStart(2, "0");
@@ -294,26 +265,6 @@ function displayStatus(status) {
 
 function isFinalStatus(value) {
   return value === "승인" || value === "반려";
-}
-
-function normalizeLeadItem(item) {
-  const fixed = { ...item };
-
-  const storeLooksPassword = item.store && !stores.includes(item.store) && stores.includes(item.target);
-  const targetLooksStore = stores.includes(item.target);
-  const productsLooksLead = leads.includes(item.products);
-
-  if (storeLooksPassword && targetLooksStore && productsLooksLead) {
-    fixed.password = item.store;
-    fixed.store = item.target;
-    fixed.target = item.products;
-    fixed.products = item.date;
-    fixed.date = item.reason;
-    fixed.reason = isFinalStatus(item.status) ? "" : item.status;
-    fixed.status = isFinalStatus(item.status) ? item.status : "대기";
-  }
-
-  return fixed;
 }
 
 function isPendingItem(item) {
@@ -457,13 +408,9 @@ function loadAdminData() {
 }
 
 function handleAdminData(data) {
-  const rotationList = (data.rotation || []).filter(isPendingItem);
-  const leadList = (data.lead || []).map(normalizeLeadItem).filter(isPendingItem);
-  const vocList = (data.voc || []).filter(isPendingItem);
-
-  renderAdminList("adminRotationList", rotationList);
-  renderAdminList("adminLeadList", leadList);
-  renderAdminList("adminVocList", vocList);
+  renderAdminList("adminRotationList", (data.rotation || []).filter(isPendingItem));
+  renderAdminList("adminLeadList", (data.lead || []).filter(isPendingItem));
+  renderAdminList("adminVocList", (data.voc || []).filter(isPendingItem));
 }
 
 function renderAdminList(elementId, list) {
@@ -490,7 +437,6 @@ function renderAdminList(elementId, list) {
     }
 
     if (item.sheetName === "리드방문요청") {
-      item = normalizeLeadItem(item);
       html = `
         <p><b>이름:</b> ${item.name || ""}</p>
         <p><b>본인 점포:</b> ${item.store || ""}</p>
@@ -568,13 +514,7 @@ function handleMyStatus(data) {
 
   box.innerHTML = "";
 
-  list.slice().reverse().forEach(raw => {
-    let item = raw;
-
-    if (item.sheetName === "리드방문요청") {
-      item = normalizeLeadItem(item);
-    }
-
+  list.slice().reverse().forEach(item => {
     if (item.sheetName === "순환근무신청") {
       box.innerHTML += `
         <div class="card">
@@ -595,21 +535,6 @@ function handleMyStatus(data) {
           <p><b>요청리드:</b> ${item.target || ""}</p>
           <p><b>품목:</b> ${item.products || ""}</p>
           <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
-          <p><b>요청사유:</b> ${item.reason || ""}</p>
-          <p><b>상태:</b> <span class="${statusClass(item.status)}">${displayStatus(item.status)}</span></p>
-        </div>
-      `;
-    }
-
-    if (item.sheetName === "리드전용요청") {
-      box.innerHTML += `
-        <div class="card">
-          <p><b>유형:</b> 리드전용요청</p>
-          <p><b>리드:</b> ${item.lead || ""}</p>
-          <p><b>교육 대상자:</b> ${item.members || ""}</p>
-          <p><b>품목:</b> ${item.products || ""}</p>
-          <p><b>요청 구분:</b> ${item.visitType || ""}</p>
-          <p><b>교육 기간:</b> ${formatDateOnly(item.start)} ~ ${formatDateOnly(item.end)}</p>
           <p><b>요청사유:</b> ${item.reason || ""}</p>
           <p><b>상태:</b> <span class="${statusClass(item.status)}">${displayStatus(item.status)}</span></p>
         </div>
@@ -689,6 +614,12 @@ function handleLeadPrivateData(data) {
 
   html += `</div>`;
   box.innerHTML = html;
+}
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js")
+    .then(() => console.log("앱 설치 준비 완료"))
+    .catch(err => console.log("설치 실패", err));
 }
 </script>
 
