@@ -443,6 +443,21 @@ function handleAdminData(data) {
 }
 
 function statusClass(status) {
+  function formatDateOnly(value) {
+  if (!value) return "";
+
+  if (typeof value === "string" && value.includes("T")) {
+    const date = new Date(value);
+    return date.toLocaleDateString("ko-KR", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).replaceAll(". ", "-").replace(".", "");
+  }
+
+  return value;
+}
   if (status === "승인") return "status-ok";
   if (status === "반려") return "status-no";
   return "status-wait";
@@ -466,7 +481,7 @@ function renderAdminList(elementId, list) {
         <p><b>이름:</b> ${item.name}</p>
         <p><b>본인 점포:</b> ${item.store}</p>
         <p><b>요청점:</b> ${item.target}</p>
-        <p><b>일자:</b> ${item.date}</p>
+        <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
         <p><b>사유:</b> ${item.reason}</p>
       `;
     }
@@ -477,7 +492,7 @@ function renderAdminList(elementId, list) {
         <p><b>본인 점포:</b> ${item.store}</p>
         <p><b>요청 리드:</b> ${item.target}</p>
         <p><b>품목:</b> ${item.products}</p>
-        <p><b>일자:</b> ${item.date}</p>
+        <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
         <p><b>사유:</b> ${item.reason}</p>
       `;
     }
@@ -488,7 +503,7 @@ function renderAdminList(elementId, list) {
         <p><b>교육 대상자:</b> ${item.members}</p>
         <p><b>품목:</b> ${item.products}</p>
         <p><b>요청 구분:</b> ${item.visitType}</p>
-        <p><b>교육 기간:</b> ${item.start} ~ ${item.end}</p>
+        <p><b>교육 기간:</b> ${formatDateOnly(item.start)} ~ ${formatDateOnly(item.end)}</p>
         <p><b>사유:</b> ${item.reason}</p>
       `;
     }
@@ -528,13 +543,17 @@ function loadMyStatus() {
   const name = document.getElementById("myName").value.trim();
   const password = document.getElementById("myPw").value.trim();
 
-  if (!name || !password) {
-    document.getElementById("myStatusMsg").innerText = "이름과 비밀번호를 입력해주세요.";
+  if (!name) {
+    document.getElementById("myStatusMsg").innerText = "이름을 입력해주세요.";
     return;
   }
 
   document.getElementById("myStatusMsg").innerText = "조회 중...";
-  loadJsonp("myStatus", "handleMyStatus", { name: name, password: password });
+
+  loadJsonp("myStatus", "handleMyStatus", {
+    name: name,
+    password: password
+  });
 }
 
 function handleMyStatus(data) {
@@ -561,7 +580,7 @@ function handleMyStatus(data) {
         <p><b>유형:</b> ${item.sheetName}</p>
         <p><b>요청:</b> ${item.target}</p>
         ${item.products ? `<p><b>품목:</b> ${item.products}</p>` : ""}
-        <p><b>일자:</b> ${item.date}</p>
+        <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
         <p><b>사유:</b> ${item.reason}</p>
         <p><b>상태:</b> <span class="${statusClass(item.status)}">${item.status}</span></p>
       </div>
@@ -607,7 +626,7 @@ function handleLeadPrivateData(data) {
           <p><b>신청자:</b> ${item.name}</p>
           <p><b>점포:</b> ${item.store}</p>
           <p><b>품목:</b> ${item.products}</p>
-          <p><b>일자:</b> ${item.date}</p>
+          <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
           <p><b>사유:</b> ${item.reason}</p>
           <p><b>상태:</b> <span class="${statusClass(item.status)}">${item.status}</span></p>
         </div>
