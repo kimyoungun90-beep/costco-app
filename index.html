@@ -640,8 +640,9 @@ function handleLeadPrivateData(data) {
     return;
   }
 
-  const leadRequests = (data.leadRequests || []).map(normalizeLeadItem);
+  const leadRequests = data.leadRequests || [];
   const vocRequests = data.vocRequests || [];
+
   let html = "";
 
   html += `<div class="card"><h3>내게 들어온 리드 방문 요청</h3>`;
@@ -654,6 +655,7 @@ function handleLeadPrivateData(data) {
         <div class="card">
           <p><b>신청자:</b> ${item.name || ""}</p>
           <p><b>점포:</b> ${item.store || ""}</p>
+          <p><b>요청 리드:</b> ${item.target || ""}</p>
           <p><b>품목:</b> ${item.products || ""}</p>
           <p><b>일자:</b> ${formatDateOnly(item.date)}</p>
           <p><b>사유:</b> ${item.reason || ""}</p>
@@ -673,6 +675,7 @@ function handleLeadPrivateData(data) {
     vocRequests.slice().reverse().forEach(item => {
       html += `
         <div class="card">
+          <p><b>리드:</b> ${item.lead || ""}</p>
           <p><b>교육 대상자:</b> ${item.members || ""}</p>
           <p><b>품목:</b> ${item.products || ""}</p>
           <p><b>요청 구분:</b> ${item.visitType || ""}</p>
